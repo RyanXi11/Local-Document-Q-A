@@ -41,10 +41,10 @@ def ask(index, question: str) -> None:
 
 
 def run_repl(index) -> None:
-    print("Type a question, or 'exit' to quit.")
+    print("Type a question, or 'exit' / 'quit' / Ctrl+C to quit.")
     while True:
         try:
-            question = input("Question> ").strip()
+            question = input("Question (or 'exit')> ").strip()
         except (EOFError, KeyboardInterrupt):
             print()
             return
