@@ -7,7 +7,7 @@ import httpx
 OLLAMA_HOST = "http://localhost:11434"
 EMBED_MODEL = "nomic-embed-text"
 CHAT_MODEL = "llama3.2"
-TIMEOUT_SECONDS = 120.0
+TIMEOUT = httpx.Timeout(connect=5.0, read=120.0, write=120.0, pool=5.0)
 
 _FIXIT = (
     "Could not reach Ollama at http://localhost:11434. "
@@ -34,13 +34,13 @@ def _request(method: str, path: str, payload: dict, model: str) -> dict:
             method,
             f"{OLLAMA_HOST}{path}",
             json=payload,
-            timeout=TIMEOUT_SECONDS,
+            timeout=TIMEOUT,
         )
-    except httpx.ConnectError as exc:
+    except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
         raise OllamaError(_FIXIT) from exc
     except httpx.TimeoutException as exc:
         raise OllamaError(
-            f"Ollama timed out after {TIMEOUT_SECONDS:.0f}s. "
+            "Ollama timed out after 120s. "
             "Is a model still downloading, or is the machine under load?"
         ) from exc
 

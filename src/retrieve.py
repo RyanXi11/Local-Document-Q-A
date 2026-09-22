@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from dataclasses import asdict, dataclass
@@ -29,8 +30,8 @@ def _normalize(vectors: np.ndarray) -> np.ndarray:
     return vectors / norms
 
 
-def _source_mtime_ns(path: Path) -> int:
-    return path.stat().st_mtime_ns
+def _source_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _cache_is_current(source: Path) -> bool:
@@ -42,8 +43,7 @@ def _cache_is_current(source: Path) -> bool:
         return False
     return (
         meta.get("embed_model") == EMBED_MODEL
-        and meta.get("source_mtime_ns") == _source_mtime_ns(source)
-        and meta.get("source_path") == str(source.resolve())
+        and meta.get("source_sha256") == _source_sha256(source)
     )
 
 
@@ -59,8 +59,7 @@ def _save_cache(index: Index, source: Path) -> None:
     np.savez(INDEX_PATH, embeddings=index.embeddings)
     payload = {
         "embed_model": EMBED_MODEL,
-        "source_mtime_ns": _source_mtime_ns(source),
-        "source_path": str(source.resolve()),
+        "source_sha256": _source_sha256(source),
         "chunks": [asdict(chunk) for chunk in index.chunks],
     }
     CHUNKS_PATH.write_text(

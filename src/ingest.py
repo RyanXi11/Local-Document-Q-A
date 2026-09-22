@@ -81,6 +81,19 @@ def _find_break(text: str, start: int, hard_end: int) -> int:
     return hard_end
 
 
+def _snap_to_word_start(text: str, pos: int, not_before: int) -> int:
+    """If pos is inside a word, move back to that word's first character."""
+    if pos <= not_before:
+        return pos
+    if pos >= len(text):
+        return pos
+    while pos > not_before and not text[pos - 1].isspace():
+        pos -= 1
+    while pos < len(text) and text[pos].isspace():
+        pos += 1
+    return pos
+
+
 def chunk_text(
     text: str,
     chapter: str,
@@ -121,6 +134,10 @@ def chunk_text(
         next_start = end - overlap
         if next_start <= start:
             next_start = end
+        else:
+            next_start = _snap_to_word_start(text, next_start, start + 1)
+            if next_start <= start:
+                next_start = end
         start = next_start
 
     return chunks

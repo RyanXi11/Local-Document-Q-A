@@ -85,6 +85,18 @@ class ChunkTextTests(unittest.TestCase):
                 "consecutive chunks should overlap in the source text",
             )
 
+    def test_chunks_do_not_start_mid_word(self):
+        text = ("Alice followed the rabbit. " * 60).strip()
+        chunks = chunk_text(text, "CHAPTER I.", size=80, overlap=20)
+        self.assertGreater(len(chunks), 1)
+        for chunk in chunks:
+            if chunk.start_char == 0:
+                continue
+            self.assertTrue(
+                text[chunk.start_char - 1].isspace(),
+                f"chunk starts mid-word: {chunk.text[:30]!r}",
+            )
+
 
 class LoadAndChunkTests(unittest.TestCase):
     def test_alice_has_twelve_chapters_and_no_license(self):
